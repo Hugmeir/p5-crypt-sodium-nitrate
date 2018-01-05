@@ -1,0 +1,4 @@
+Makefile.PL
+NaK.xs
+lib/NaK.pm
+MANIFEST
