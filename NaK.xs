@@ -7,15 +7,51 @@
 /* libsodium */
 #include "sodium.h"
 
+#ifdef XopENTRY_set
+static XOP my_encrypt, my_decrypt;
+#endif
+
+
+/* Code stolen from Sereal: */
+/* perl 5.25 op_sibling renaming related compat macros. Should probably
+ * live in ppport or so. */
+
+#ifndef OpSIBLING
+# define OpSIBLING(op) ((op)->op_sibling)
+#endif
+
+#ifndef OpHAS_SIBLING
+# define OpHAS_SIBLING(op) ((op)->op_sibling != NULL)
+#endif
+
+/* This is completely opting out, sigh */
+#ifndef op_parent
+# undef OpLASTSIB_set
+# undef OpMORESIB_set
+# define op_parent(op) NULL
+# define OpMORESIB_set(op, sib) ((op)->op_sibling = (sib))
+# define OpLASTSIB_set(op, parent) ((op)->op_sibling = NULL)
+#endif
+
+#ifdef XopENTRY_set
+/* -MO=Concise & friends will show useful info for our custom ops */
+# define XopENTRY_multiset(a,b,c) STMT_START {   \
+    XopENTRY_set(&(a), xop_name, b);            \
+    XopENTRY_set(&(a), xop_desc, b);            \
+    XopENTRY_set(&(a), xop_class, OA_UNOP);     \
+    Perl_custom_op_register(aTHX_ (c), &(a));   \
+} STMT_END
+#else
+# define XopENTRY_multiset(a,b,c)
+#endif
+
 SV*
 THX_sodium_encrypt(pTHX_ SV* msg, SV* nonce, SV* key)
 #define sodium_encrypt(a,b,c) THX_sodium_encrypt(aTHX_ a,b,c)
 {
     SV* encrypted_sv;
     STRLEN msg_len, nonce_len, key_len, enc_len;
-    unsigned char * msg_buf;
-    unsigned char * nonce_buf;
-    unsigned char * key_buf;
+    unsigned char *msg_buf, *nonce_buf, *key_buf;
     nonce_buf = (unsigned char *)SvPV(nonce, nonce_len);
     if ( nonce_len != crypto_secretbox_NONCEBYTES ) {
         croak("Invalid nonce");
@@ -53,9 +89,7 @@ THX_sodium_decrypt(pTHX_ SV* ciphertext, SV* nonce, SV* key)
     SV* decrypted_sv;
     STRLEN dec_len, nonce_len, key_len, msg_len;
     int decrypt_result = 0;
-    unsigned char* nonce_buf;
-    unsigned char* key_buf;
-    unsigned char* msg_buf;
+    unsigned char *nonce_buf, *key_buf, *msg_buf;
 
     nonce_buf = (unsigned char *)SvPV(nonce, nonce_len);
     if ( nonce_len != crypto_secretbox_NONCEBYTES ) {
@@ -94,19 +128,92 @@ THX_sodium_decrypt(pTHX_ SV* ciphertext, SV* nonce, SV* key)
     return decrypted_sv;
 }
 
+#define ARITY (SP - (PL_stack_base + TOPMARK))
+
+OP*
+S_pp_encrypt(pTHX)
+{
+    dSP;
+    SSize_t arity = ARITY;
+    SV *encrypted, *msg, *nonce, *key;
+
+    if ( arity < 3 )
+        croak("encrypt() must be passed a message, a nonce, and a key");
+
+    key   = POPs;
+    nonce = POPs;
+    msg   = POPs;
+
+    encrypted = sodium_encrypt(msg, nonce, key);
+
+    mXPUSHs(encrypted);
+    PUTBACK;
+
+    return NORMAL;
+}
+
+OP*
+S_pp_decrypt(pTHX)
+{
+    dSP;
+    SSize_t arity = ARITY;
+    SV *decrypted, *cipher, *nonce, *key;
+
+    if ( arity < 3 )
+        croak("decrypt() must be passed a message, a nonce, and a key");
+
+    key    = POPs;
+    nonce  = POPs;
+    cipher = POPs;
+
+    decrypted = sodium_decrypt(cipher, nonce, key);
+    mXPUSHs(decrypted);
+    PUTBACK;
+    return NORMAL;
+}
+
+STATIC OP*
+S_ck_remove_entersub_crypt(pTHX_ OP *entersubop, GV *namegv, SV *encrypt_sv)
+{
+    OP *pushop, *firstargop, *cvop, *lastargop, *argop, *newop;
+    bool encrypt = SvTRUE(encrypt_sv);
+
+    ck_entersub_args_proto_or_list(entersubop, namegv, &PL_sv_undef);
+
+    /* Code stolen from Sereal -- deattach the arguments from the entersub */
+    pushop = cUNOPx(entersubop)->op_first;
+    if ( ! OpHAS_SIBLING(pushop) )
+        pushop = cUNOPx(pushop)->op_first;
+    firstargop = OpSIBLING(pushop);
+
+    for (cvop = firstargop; OpHAS_SIBLING(cvop); cvop = OpSIBLING(cvop)) ;
+
+    lastargop = pushop;
+    for (
+        lastargop = pushop, argop = firstargop;
+        argop != cvop;
+        lastargop = argop, argop = OpSIBLING(argop)
+    ) {
+    }
+
+    /* After finding the start/end of the arguments, deattach & free */
+    OpMORESIB_set(pushop, cvop);
+    OpLASTSIB_set(lastargop, op_parent(lastargop));
+    op_free(entersubop);
+
+    /* the custom OP that will handle the rest */
+    newop = newUNOP(OP_NULL, 0, firstargop);
+    newop->op_type    = OP_CUSTOM;
+    newop->op_ppaddr  = encrypt ? S_pp_encrypt : S_pp_decrypt;
+    newop->op_private = 0;
+
+    return newop;
+}
+
+
 MODULE = NaK        PACKAGE = NaK
 
 PROTOTYPES: DISABLE
-
-BOOT:
-{
-    /* let's create a couple of constants for perl to use */
-    HV *stash = gv_stashpvs("NaK", GV_ADD);
-
-    newCONSTSUB(stash, "NONCEBYTES", newSViv(crypto_secretbox_NONCEBYTES));
-    newCONSTSUB(stash, "KEYBYTES",   newSViv(crypto_secretbox_KEYBYTES));
-    newCONSTSUB(stash, "MACBYTES",   newSViv(crypto_secretbox_MACBYTES));
-}
 
 void
 encrypt(SV* msg, SV* nonce, SV* key)
@@ -133,6 +240,26 @@ PPCODE:
     decrypted_sv = sodium_decrypt(ciphertext, nonce, key);
     mXPUSHs( decrypted_sv );
     XSRETURN(1);
+}
+
+BOOT:
+{
+    /* let's create a couple of constants for perl to use */
+    HV *stash = gv_stashpvs("NaK", GV_ADD);
+
+    newCONSTSUB(stash, "NONCEBYTES", newSViv(crypto_secretbox_NONCEBYTES));
+    newCONSTSUB(stash, "KEYBYTES",   newSViv(crypto_secretbox_KEYBYTES));
+    newCONSTSUB(stash, "MACBYTES",   newSViv(crypto_secretbox_MACBYTES));
+
+    /* Set up custom OPs for encrypt & decrypt */
+    CV * const encrypt_cv = get_cvn_flags("NaK::encrypt", 12, 1);
+    CV * const decrypt_cv = get_cvn_flags("NaK::decrypt", 12, 1);
+
+    cv_set_call_checker(encrypt_cv, S_ck_remove_entersub_crypt, &PL_sv_yes);
+    cv_set_call_checker(decrypt_cv, S_ck_remove_entersub_crypt, &PL_sv_no);
+
+    XopENTRY_multiset(my_encrypt, "encrypt", S_pp_encrypt);
+    XopENTRY_multiset(my_decrypt, "decrypt", S_pp_decrypt);
 }
 
 
