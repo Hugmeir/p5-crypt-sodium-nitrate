@@ -61,7 +61,7 @@ PPCODE:
     SvCUR_set(encrypted_sv, enc_len);
 
     crypto_secretbox_easy(
-        SvPVX(encrypted_sv),
+        (unsigned char *)SvPVX(encrypted_sv),
         msg_buf,
         msg_len,
         nonce_buf,
@@ -112,7 +112,7 @@ PPCODE:
     SvUPGRADE(decrypted_sv, SVt_PV);
     SvPOK_on(decrypted_sv);
 
-    if ( crypto_secretbox_open_easy( SvPVX(decrypted_sv), msg_buf, msg_len, nonce_buf, key_buf) == 0 ) {
+    if ( crypto_secretbox_open_easy( (unsigned char *)SvPVX(decrypted_sv), msg_buf, msg_len, nonce_buf, key_buf) == 0 ) {
         SvCUR_set(decrypted_sv, dec_len);
         mXPUSHs( decrypted_sv );
         XSRETURN(1);
