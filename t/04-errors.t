@@ -5,27 +5,27 @@ use warnings;
 use Test::More;
 use Test::Exception;
 
-use NaK;
+use Crypt::Sodium::Nitrate;
 
-my $k = "K" x NaK::KEYBYTES();
-my $n = "N" x NaK::NONCEBYTES();
+my $k = "K" x Crypt::Sodium::Nitrate::KEYBYTES();
+my $n = "N" x Crypt::Sodium::Nitrate::NONCEBYTES();
 
 my $bad_arity = qr/\Qencrypt() must be passed a message, a nonce, and a key\E/;
 
-throws_ok { NaK::encrypt() } $bad_arity, "no args";
-throws_ok { NaK::encrypt("") } $bad_arity, "1 arg";
-throws_ok { NaK::encrypt("", "") } $bad_arity, "2 args";
+throws_ok { Crypt::Sodium::Nitrate::encrypt() } $bad_arity, "no args";
+throws_ok { Crypt::Sodium::Nitrate::encrypt("") } $bad_arity, "1 arg";
+throws_ok { Crypt::Sodium::Nitrate::encrypt("", "") } $bad_arity, "2 args";
 
 TODO: {
     local $TODO = "Arity checks are broken for > 3 args";
-    throws_ok { NaK::encrypt("", "", "", "") } $bad_arity, "4 args";
+    throws_ok { Crypt::Sodium::Nitrate::encrypt("", "", "", "") } $bad_arity, "4 args";
     my @args = ("" x 66);
-    throws_ok { NaK::encrypt(@args) } $bad_arity, "array of args";
+    throws_ok { Crypt::Sodium::Nitrate::encrypt(@args) } $bad_arity, "array of args";
 }
 
-throws_ok { NaK::encrypt("", "bad noncexxx", $k) } qr/Invalid nonce/;
-throws_ok { NaK::encrypt("", $n, "bad key") } qr/Invalid key/;
+throws_ok { Crypt::Sodium::Nitrate::encrypt("", "bad noncexxx", $k) } qr/Invalid nonce/;
+throws_ok { Crypt::Sodium::Nitrate::encrypt("", $n, "bad key") } qr/Invalid key/;
 
-throws_ok { NaK::decrypt("", $n, $k) } qr/Invalid ciphertext/;
+throws_ok { Crypt::Sodium::Nitrate::decrypt("", $n, $k) } qr/Invalid ciphertext/;
 
 done_testing;

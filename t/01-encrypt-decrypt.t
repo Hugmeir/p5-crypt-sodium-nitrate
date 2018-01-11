@@ -2,31 +2,31 @@
 use strict;
 use warnings;
 
-use NaK;
+use Crypt::Sodium::Nitrate;
 
 use Test::More;
 
 sub main {
-    ok(NaK::MACBYTES, "MACBYTES works");
+    ok(Crypt::Sodium::Nitrate::MACBYTES, "MACBYTES works");
     my @nacbytes;
-    $nacbytes[0] = NaK::MACBYTES();
-    $nacbytes[1] = NaK::MACBYTES;
-    $nacbytes[2] = &NaK::MACBYTES;
-    $nacbytes[3] = (\&NaK::MACBYTES)->();
+    $nacbytes[0] = Crypt::Sodium::Nitrate::MACBYTES();
+    $nacbytes[1] = Crypt::Sodium::Nitrate::MACBYTES;
+    $nacbytes[2] = &Crypt::Sodium::Nitrate::MACBYTES;
+    $nacbytes[3] = (\&Crypt::Sodium::Nitrate::MACBYTES)->();
 
     is_deeply(
         \@nacbytes,
-        [ (NaK::MACBYTES) x 4 ],
+        [ (Crypt::Sodium::Nitrate::MACBYTES) x 4 ],
         "Various ways of accessing the constants work"
     );
 
-    my $keylen   = NaK::KEYBYTES();
-    my $noncelen = NaK::NONCEBYTES();
+    my $keylen   = Crypt::Sodium::Nitrate::KEYBYTES();
+    my $noncelen = Crypt::Sodium::Nitrate::NONCEBYTES();
 
     my $key   = "X" x $keylen;
     my $nonce = "N" x $noncelen;
 
-    my $encrypt = NaK::encrypt(
+    my $encrypt = Crypt::Sodium::Nitrate::encrypt(
         "plaintext",
         $nonce,
         $key
@@ -34,7 +34,7 @@ sub main {
 
     ok($encrypt, "Can encrypt");
 
-    my $encrypt_again = NaK::encrypt(
+    my $encrypt_again = Crypt::Sodium::Nitrate::encrypt(
         "plaintext",
         $nonce,
         $key,
@@ -42,7 +42,7 @@ sub main {
 
     is($encrypt, $encrypt_again, "re-encrypting using the same nonce gives the same cipher text");
 
-    my $decrypted = NaK::decrypt(
+    my $decrypted = Crypt::Sodium::Nitrate::decrypt(
         $encrypt,
         $nonce,
         $key

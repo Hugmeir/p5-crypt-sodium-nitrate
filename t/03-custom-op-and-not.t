@@ -5,50 +5,50 @@ use warnings;
 use Test::More;
 use Data::Dumper;
 
-use NaK;
+use Crypt::Sodium::Nitrate;
 
 sub lived_ok ($) { pass($_[0]) }
 
 sub main {
-    my $k = "K" x NaK::KEYBYTES();
-    my $n = "N" x NaK::NONCEBYTES();
+    my $k = "K" x Crypt::Sodium::Nitrate::KEYBYTES();
+    my $n = "N" x Crypt::Sodium::Nitrate::NONCEBYTES();
     my $v = "original value do not steal $$";
     my @args = ($v, $n, $k);
 
     subtest "encrypt" => sub {
-        my $e = \&NaK::encrypt;
+        my $e = \&Crypt::Sodium::Nitrate::encrypt;
         my @encrypt;
-        $encrypt[0] = NaK::encrypt($v, $n, $k);
+        $encrypt[0] = Crypt::Sodium::Nitrate::encrypt($v, $n, $k);
         lived_ok("custom op");
 
-        $encrypt[1] = &NaK::encrypt($v, $n, $k);
+        $encrypt[1] = &Crypt::Sodium::Nitrate::encrypt($v, $n, $k);
         lived_ok("xs func");
 
         $encrypt[2] = $e->($v, $n, $k);
         lived_ok("xs func via ref");
 
-        $encrypt[3] = NaK::encrypt(@args);
+        $encrypt[3] = Crypt::Sodium::Nitrate::encrypt(@args);
         lived_ok("custom op with list args");
 
-        $encrypt[4] = &NaK::encrypt(@args);
+        $encrypt[4] = &Crypt::Sodium::Nitrate::encrypt(@args);
         lived_ok("xs func with list args");
 
         $encrypt[5] = $e->(@args);
         lived_ok("xs func via ref with list args");
 
-        push @encrypt, NaK::encrypt($v, $n, $k);
+        push @encrypt, Crypt::Sodium::Nitrate::encrypt($v, $n, $k);
         lived_ok("custom op list context");
 
-        push @encrypt, &NaK::encrypt($v, $n, $k);
+        push @encrypt, &Crypt::Sodium::Nitrate::encrypt($v, $n, $k);
         lived_ok("xs func list context");
 
         push @encrypt, $e->($v, $n, $k);
         lived_ok("xs func via ref list context");
 
-        push @encrypt, NaK::encrypt(@args);
+        push @encrypt, Crypt::Sodium::Nitrate::encrypt(@args);
         lived_ok("custom op list context list args");
 
-        push @encrypt, &NaK::encrypt(@args);
+        push @encrypt, &Crypt::Sodium::Nitrate::encrypt(@args);
         lived_ok("xs func list context list args");
 
         push @encrypt, $e->(@args);
@@ -59,41 +59,41 @@ sub main {
             or diag(Dumper(\@encrypt));
     };
 
-    $v = $args[0] = NaK::encrypt($v, $n, $k);
+    $v = $args[0] = Crypt::Sodium::Nitrate::encrypt($v, $n, $k);
     subtest "decrypt" => sub {
-        my $e = \&NaK::decrypt;
+        my $e = \&Crypt::Sodium::Nitrate::decrypt;
         my @decrypt;
-        $decrypt[0] = NaK::decrypt($v, $n, $k);
+        $decrypt[0] = Crypt::Sodium::Nitrate::decrypt($v, $n, $k);
         lived_ok("custom op");
 
-        $decrypt[1] = &NaK::decrypt($v, $n, $k);
+        $decrypt[1] = &Crypt::Sodium::Nitrate::decrypt($v, $n, $k);
         lived_ok("xs func");
 
         $decrypt[2] = $e->($v, $n, $k);
         lived_ok("xs func via ref");
 
-        $decrypt[3] = NaK::decrypt(@args);
+        $decrypt[3] = Crypt::Sodium::Nitrate::decrypt(@args);
         lived_ok("custom op with list args");
 
-        $decrypt[4] = &NaK::decrypt(@args);
+        $decrypt[4] = &Crypt::Sodium::Nitrate::decrypt(@args);
         lived_ok("xs func with list args");
 
         $decrypt[5] = $e->(@args);
         lived_ok("xs func via ref with list args");
 
-        push @decrypt, NaK::decrypt($v, $n, $k);
+        push @decrypt, Crypt::Sodium::Nitrate::decrypt($v, $n, $k);
         lived_ok("custom op list context");
 
-        push @decrypt, &NaK::decrypt($v, $n, $k);
+        push @decrypt, &Crypt::Sodium::Nitrate::decrypt($v, $n, $k);
         lived_ok("xs func list context");
 
         push @decrypt, $e->($v, $n, $k);
         lived_ok("xs func via ref list context");
 
-        push @decrypt, NaK::decrypt(@args);
+        push @decrypt, Crypt::Sodium::Nitrate::decrypt(@args);
         lived_ok("custom op list context list args");
 
-        push @decrypt, &NaK::decrypt(@args);
+        push @decrypt, &Crypt::Sodium::Nitrate::decrypt(@args);
         lived_ok("xs func list context list args");
 
         push @decrypt, $e->(@args);

@@ -1,4 +1,4 @@
-package NaK;
+package Crypt::Sodium::Nitrate;
 use strict;
 use warnings;
 
@@ -16,7 +16,7 @@ __END__
 
 =head1 NAME
 
-NaK - Don't let your sodium levels get too high!
+Crypt::Sodium::Nitrate - Don't let your sodium levels get too high!
 
 =head1 DESCRIPTION
 
@@ -27,7 +27,7 @@ This module was derived from code in L<Crypt::NaCl::Sodium>,
 particularly L<Crypt::NaCl::Sodium::secretbox>.  Head over
 there for a more extensive interface to libsodium!
 
-The main difference is that C<NaK> does B<not> use protected
+The main difference is that C<Crypt::Sodium::Nitrate> does B<not> use protected
 memory to store the encrypted/decrypted value;  everything
 is done in Perl-allocated memory.
 

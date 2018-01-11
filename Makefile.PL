@@ -57,8 +57,11 @@ die "Is Alien::Sodium available? Could not locate $libsodium_lib in @dirs\n"
     unless $libsodium_path;
 
 WriteMakefile(
-    ABSTRACT_FROM  => 'lib/NaK.pm', # retrieve abstract from module
-    AUTHOR         => "Filthy Pirates",
+    ABSTRACT_FROM  => 'lib/Crypt/Sodium/Nitrate.pm', # retrieve abstract from module
+    AUTHOR         => [
+        "Brian Fraser (brian.fraser at booking.com)",
+        "Gonzalo Diethelm (gonzalo.diethelm at booking.com)",
+    ],
     CONFIGURE_REQUIRES => {
         "File::ShareDir" => 0,
         "File::Spec" => 0,
@@ -66,13 +69,13 @@ WriteMakefile(
         "Alien::Base::ModuleBuild" => 0,
         "ExtUtils::MakeMaker" => 0,
     },
-    DISTNAME  => "NaK",
+    DISTNAME  => "Crypt-Sodium-Nitrate",
     DEFINE    => join(" ", map { "-D$_" } @defines),
     EXE_FILES => [],
     MYEXTLIB  => $libsodium_path,
     INC       => join(' ', "-I.", $include_dirs),
     LICENSE   => "perl",
-    NAME      => "NaK",
+    NAME      => "Crypt::Sodium::Nitrate",
     PREREQ_PM => {
         "Alien::Sodium" => $aliensodium_version,
         "Carp"          => 0,
@@ -84,7 +87,7 @@ WriteMakefile(
         "Test::More"      => 0,
         "Test::Exception" => 0,
     },
-    VERSION_FROM     => 'lib/NaK.pm',
+    VERSION_FROM     => 'lib/Crypt/Sodium/Nitrate.pm',
     test => {
         "TESTS" => "t/*.t"
     }

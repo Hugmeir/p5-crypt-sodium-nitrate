@@ -212,7 +212,7 @@ S_ck_remove_entersub_crypt(pTHX_ OP *entersubop, GV *namegv, SV *encrypt_sv)
 }
 
 
-MODULE = NaK        PACKAGE = NaK
+MODULE = Crypt::Sodium::Nitrate        PACKAGE = Crypt::Sodium::Nitrate
 
 PROTOTYPES: DISABLE
 
@@ -246,15 +246,15 @@ PPCODE:
 BOOT:
 {
     /* let's create a couple of constants for perl to use */
-    HV *stash = gv_stashpvs("NaK", GV_ADD);
+    HV *stash = gv_stashpvs("Crypt::Sodium::Nitrate", GV_ADD);
 
     newCONSTSUB(stash, "NONCEBYTES", newSViv(crypto_secretbox_NONCEBYTES));
     newCONSTSUB(stash, "KEYBYTES",   newSViv(crypto_secretbox_KEYBYTES));
     newCONSTSUB(stash, "MACBYTES",   newSViv(crypto_secretbox_MACBYTES));
 
     /* Set up custom OPs for encrypt & decrypt */
-    CV * const encrypt_cv = get_cvn_flags("NaK::encrypt", 12, 1);
-    CV * const decrypt_cv = get_cvn_flags("NaK::decrypt", 12, 1);
+    CV * const encrypt_cv = get_cvn_flags("Crypt::Sodium::Nitrate::encrypt", 31, 1);
+    CV * const decrypt_cv = get_cvn_flags("Crypt::Sodium::Nitrate::decrypt", 31, 1);
 
     cv_set_call_checker(encrypt_cv, S_ck_remove_entersub_crypt, &PL_sv_yes);
     cv_set_call_checker(decrypt_cv, S_ck_remove_entersub_crypt, &PL_sv_no);
