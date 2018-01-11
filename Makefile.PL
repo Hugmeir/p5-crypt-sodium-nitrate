@@ -56,42 +56,39 @@ for my $dir ( @dirs ) {
 die "Is Alien::Sodium available? Could not locate $libsodium_lib in @dirs\n"
     unless $libsodium_path;
 
-my %WriteMakefileArgs = (
+WriteMakefile(
     ABSTRACT_FROM  => 'lib/NaK.pm', # retrieve abstract from module
     AUTHOR         => "Filthy Pirates",
-  "CONFIGURE_REQUIRES" => {
-    "File::ShareDir" => 0,
-    "File::Spec" => 0,
-    "Alien::Sodium" => $aliensodium_version,
-    "ExtUtils::MakeMaker" => "0",
-    "ExtUtils::CBuilder" => 0,
-  },
-  "DISTNAME" => "NaK",
-  "DEFINE" => join(" ", map { "-D$_" } @defines),
-  "EXE_FILES" => [],
-  "MYEXTLIB"  => $libsodium_path,
-  "INC"       => join(' ', "-I.", $include_dirs),
-  "LICENSE" => "perl",
-  "NAME" => "NaK",
-  "PREREQ_PM" => {
-    "Alien::Sodium" => $aliensodium_version,
-    "Carp" => 0,
-    "Sub::Exporter" => 0,
-    "XSLoader" => 0,
-    "strict" => 0,
-    "warnings" => 0
-  },
-  "TEST_REQUIRES" => {
-    "Test::More" => 0,
-    "Test::Exception" => 0,
-  },
-  "VERSION_FROM"     => 'lib/NaK.pm',
-  "test" => {
-    "TESTS" => "t/*.t"
-  }
+    CONFIGURE_REQUIRES => {
+        "File::ShareDir" => 0,
+        "File::Spec" => 0,
+        "Alien::Sodium" => $aliensodium_version,
+        "Alien::Base::ModuleBuild" => 0,
+        "ExtUtils::MakeMaker" => 0,
+    },
+    DISTNAME  => "NaK",
+    DEFINE    => join(" ", map { "-D$_" } @defines),
+    EXE_FILES => [],
+    MYEXTLIB  => $libsodium_path,
+    INC       => join(' ', "-I.", $include_dirs),
+    LICENSE   => "perl",
+    NAME      => "NaK",
+    PREREQ_PM => {
+        "Alien::Sodium" => $aliensodium_version,
+        "Carp"          => 0,
+        "XSLoader"      => 0,
+        "strict"        => 0,
+        "warnings"      => 0
+    },
+    TEST_REQUIRES => {
+        "Test::More"      => 0,
+        "Test::Exception" => 0,
+    },
+    VERSION_FROM     => 'lib/NaK.pm',
+    test => {
+        "TESTS" => "t/*.t"
+    }
 );
-
-WriteMakefile(%WriteMakefileArgs);
 
 sub usage {
     return "Example usage:\n"

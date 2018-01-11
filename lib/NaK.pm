@@ -23,6 +23,14 @@ NaK - Don't let your sodium levels get too high!
 A thin wrapper around libsodium, exposing only the minimum
 necessary to use the sodium secretbox.
 
+This module was derived from code in L<Crypt::NaCl::Sodium>,
+particularly L<Crypt::NaCl::Sodium::secretbox>.  Head over
+there for a more extensive interface to libsodium!
+
+The main difference is that C<NaK> does B<not> use protected
+memory to store the encrypted/decrypted value;  everything
+is done in Perl-allocated memory.
+
 =head1 FUNCTIONS
 
 =head2 decrypt($ciphertext, $nonce, $key)
