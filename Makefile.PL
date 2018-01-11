@@ -83,6 +83,7 @@ my %WriteMakefileArgs = (
   },
   "TEST_REQUIRES" => {
     "Test::More" => 0,
+    "Test::Exception" => 0,
   },
   "VERSION_FROM"     => 'lib/NaK.pm',
   "test" => {

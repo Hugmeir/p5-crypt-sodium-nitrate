@@ -137,12 +137,13 @@ S_pp_encrypt(pTHX)
     SSize_t arity = ARITY;
     SV *encrypted, *msg, *nonce, *key;
 
-    if ( arity < 3 )
-        croak("encrypt() must be passed a message, a nonce, and a key");
-
     key   = POPs;
     nonce = POPs;
     msg   = POPs;
+
+     if ( arity < 3 ) {
+        croak("encrypt() must be passed a message, a nonce, and a key");
+    }
 
     encrypted = sodium_encrypt(msg, nonce, key);
 
