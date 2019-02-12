@@ -202,7 +202,9 @@ S_ck_remove_entersub_crypt(pTHX_ OP *entersubop, GV *namegv, SV *encrypt_sv)
     op_free(entersubop);
 
     /* the custom OP that will handle the rest */
-    newop = newUNOP(OP_NULL, 0, firstargop);
+    pushop = newOP(OP_PUSHMARK, 0);
+    OpMORESIB_set(pushop, firstargop);
+    newop = newUNOP(OP_NULL, 0, pushop);
     newop->op_type    = OP_CUSTOM;
     newop->op_ppaddr  = encrypt ? S_pp_encrypt : S_pp_decrypt;
     newop->op_private = 0;
