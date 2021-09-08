@@ -40,6 +40,8 @@ if ( $opts{L} && $opts{I} ) {
     # NOTE: some smokers still cannot find libsodium.a, but don't add it yet, as
     # the updated Alien::Base could have fixed that
     # push @dirs, map { "$_/.libs/" } grep { /_alien/ } @dirs;
+
+    push @dirs, "$ENV{HOME}/perl5/lib/perl5/auto/share/dist/Alien-Sodium/lib";
 }
 
 my $lib_ext = $Config{lib_ext};
@@ -97,6 +99,3 @@ sub usage {
     return "Example usage:\n"
         ."\tperl $0 -L /usr/lib/x86_64-linux-gnu/ -I /usr/include/\n"
 }
-
-
-
